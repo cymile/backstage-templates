@@ -1,0 +1,38 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: deploy-kserve-model
+  title: Deploy Model (KServe)
+  description: Deploy a model using GitOps and Flux
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+    - title: Model Configuration
+      required:
+        - modelName
+        - modelUri
+        - namespace
+      properties:
+        modelName:
+          type: string
+          title: Model Name
+        modelUri:
+          type: string
+          title: Model URI
+        namespace:
+          type: string
+          title: Namespace
+          default: kubeflow-user-example-com
+
+  steps:
+    - id: generate
+      name: Generate manifest
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          modelName: ${{ parameters.modelName }}
+          modelUri: ${{ parameters.modelUri }}
+          namespace: ${{ parameters.namespace }}
