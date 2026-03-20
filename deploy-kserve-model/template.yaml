@@ -28,7 +28,7 @@ spec:
 
   steps:
     - id: generate
-      name: Generate manifest
+      name: Generate KServe manifest
       action: fetch:template
       input:
         url: ./skeleton
@@ -37,19 +37,24 @@ spec:
           modelUri: ${{ parameters.modelUri }}
           namespace: ${{ parameters.namespace }}
 
-    - id: pr-test
-      name: Create test PR
+    - id: pr
+      name: Create Pull Request
       action: publish:github:pull-request
       input:
         repoUrl: github.com?owner=cymile&repo=model-deployments
-        branchName: backstage-test-${{ parameters.modelName }}
-        title: Test PR for ${{ parameters.modelName }}
-        description: Test PR created by Backstage
+        branchName: deploy-${{ parameters.modelName }}
+        title: Deploy model ${{ parameters.modelName }}
+        description: |
+          Deploy model via Backstage
+
+          - Model: ${{ parameters.modelName }}
+          - URI: ${{ parameters.modelUri }}
+          - Namespace: ${{ parameters.namespace }}
         targetBranchName: main
         sourcePath: .
-        targetPath: apps/models/dev
+        commitMessage: Add model ${{ parameters.modelName }} manifest
 
   output:
     links:
       - title: Pull Request
-        url: ${{ steps.pr-test.output.remoteUrl }}
+        url: ${{ steps.pr.output.remoteUrl }}
