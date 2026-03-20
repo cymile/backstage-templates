@@ -52,6 +52,7 @@ spec:
           - Namespace: ${{ parameters.namespace }}
         targetBranchName: main
         sourcePath: .
+        targetPath: apps/models/dev/${{ parameters.modelName }}
         commitMessage: Add model ${{ parameters.modelName }} manifest
 
   output:
