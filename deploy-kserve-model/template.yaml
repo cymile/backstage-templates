@@ -36,3 +36,14 @@ spec:
           modelName: ${{ parameters.modelName }}
           modelUri: ${{ parameters.modelUri }}
           namespace: ${{ parameters.namespace }}
+    - id: pr-test
+      name: Create test PR
+      action: publish:github:pull-request
+      input:
+        repoUrl: github.com?owner=cymile&repo=model-deployments
+        branchName: backstage-test-${{ parameters.modelName }}
+        title: Test PR for ${{ parameters.modelName }}
+        description: Test PR created by Backstage
+        targetBranchName: main
+        sourcePath: .
+        targetPath: apps/models/dev
