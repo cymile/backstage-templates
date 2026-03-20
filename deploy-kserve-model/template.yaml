@@ -36,6 +36,7 @@ spec:
           modelName: ${{ parameters.modelName }}
           modelUri: ${{ parameters.modelUri }}
           namespace: ${{ parameters.namespace }}
+
     - id: pr-test
       name: Create test PR
       action: publish:github:pull-request
@@ -47,3 +48,8 @@ spec:
         targetBranchName: main
         sourcePath: .
         targetPath: apps/models/dev
+
+  output:
+    links:
+      - title: Pull Request
+        url: ${{ steps.pr-test.output.remoteUrl }}
