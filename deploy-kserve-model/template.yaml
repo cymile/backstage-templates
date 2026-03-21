@@ -112,11 +112,15 @@ spec:
           limitGpu: ${{ parameters.limitGpu }}
           runtimeClassName: ${{ parameters.runtimeClassName }}
 
-    - id: push
-      name: Push directly to main
-      action: github:repo:push
+    - id: publish
+      name: Create Pull Request
+      action: publish:github:pull-request
       input:
         repoUrl: github.com?owner=cymile&repo=model-deployments
+        branchName: deploy-${{ parameters.modelName }}
+        title: Deploy model ${{ parameters.modelName }}
+        description: Auto-generated model deployment
+        targetBranchName: main
 
   output:
     text:
