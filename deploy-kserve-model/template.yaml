@@ -12,6 +12,7 @@ spec:
     - title: Model Configuration
       required:
         - modelName
+        - namespace
         - hfModelName
         - modelUri
         - serviceAccountName
@@ -30,6 +31,10 @@ spec:
           type: string
           title: InferenceService Name
           default: bge-m3
+        namespace:
+          type: string
+          title: Namespace
+          default: kubeflow-user-example-com
         hfModelName:
           type: string
           title: Hugging Face Model Name
@@ -92,6 +97,7 @@ spec:
         targetPath: ./apps/models/dev/${{ parameters.modelName }}
         values:
           modelName: ${{ parameters.modelName }}
+          namespace: ${{ parameters.namespace }}
           hfModelName: ${{ parameters.hfModelName }}
           modelUri: ${{ parameters.modelUri }}
           serviceAccountName: ${{ parameters.serviceAccountName }}
