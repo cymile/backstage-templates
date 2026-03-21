@@ -3,7 +3,7 @@ kind: Template
 metadata:
   name: deploy-kserve-model
   title: Deploy Model (KServe)
-  description: Deploy a model using GitOps and Flux, pushing directly to main
+  description: Deploy a model using GitOps and push directly to main
 spec:
   owner: platform-team
   type: service
@@ -30,78 +30,66 @@ spec:
           type: string
           title: InferenceService Name
           default: bge-m3
-
         hfModelName:
           type: string
           title: Hugging Face Model Name
           default: bge-m3
-
         modelUri:
           type: string
           title: Model Storage URI
           default: s3://models/bge-m3
-
         serviceAccountName:
           type: string
           title: Service Account Name
           default: mistral
-
         minReplicas:
           type: integer
           title: Min Replicas
           default: 1
-
         scaleMetric:
           type: string
           title: Scale Metric
           default: cpu
-
         gpuMemoryUtilization:
           type: string
           title: GPU Memory Utilization
           default: "0.65"
-
         requestCpu:
           type: string
           title: CPU Request
           default: "6"
-
         requestMemory:
           type: string
           title: Memory Request
           default: 8Gi
-
         requestGpu:
           type: string
           title: GPU Request
           default: "1"
-
         limitCpu:
           type: string
           title: CPU Limit
           default: "8"
-
         limitMemory:
           type: string
           title: Memory Limit
           default: 16Gi
-
         limitGpu:
           type: string
           title: GPU Limit
           default: "1"
-
         runtimeClassName:
           type: string
           title: Runtime Class Name
           default: nvidia
 
   steps:
-    - id: generate
+    - id: generate-model
       name: Generate model manifests
       action: fetch:template
       input:
         url: ./skeleton
+        targetPath: ./apps/models/dev/${{ parameters.modelName }}
         values:
           modelName: ${{ parameters.modelName }}
           hfModelName: ${{ parameters.hfModelName }}
@@ -123,12 +111,8 @@ spec:
       action: github:repo:push
       input:
         repoUrl: github.com?owner=cymile&repo=model-deployments
-        branchName: main
-        sourcePath: .
-        targetPath: apps/models/dev/${{ parameters.modelName }}
-        commitMessage: Deploy model ${{ parameters.modelName }} from Backstage
 
   output:
     text:
       - title: Result
-        content: Model manifests pushed directly to main in model-deployments
+        content: Model manifests pushed to model-deployments
