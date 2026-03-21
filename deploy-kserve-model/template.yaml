@@ -3,7 +3,7 @@ kind: Template
 metadata:
   name: deploy-kserve-model
   title: Deploy Model (KServe)
-  description: Deploy a model using GitOps and Flux
+  description: Deploy a model using GitOps and Flux, pushing directly to main
 spec:
   owner: platform-team
   type: service
@@ -12,50 +12,123 @@ spec:
     - title: Model Configuration
       required:
         - modelName
+        - hfModelName
         - modelUri
-        - namespace
+        - serviceAccountName
+        - minReplicas
+        - scaleMetric
+        - gpuMemoryUtilization
+        - requestCpu
+        - requestMemory
+        - requestGpu
+        - limitCpu
+        - limitMemory
+        - limitGpu
+        - runtimeClassName
       properties:
         modelName:
           type: string
-          title: Model Name
+          title: InferenceService Name
+          default: bge-m3
+
+        hfModelName:
+          type: string
+          title: Hugging Face Model Name
+          default: bge-m3
+
         modelUri:
           type: string
-          title: Model URI
-        namespace:
+          title: Model Storage URI
+          default: s3://models/bge-m3
+
+        serviceAccountName:
           type: string
-          title: Namespace
-          default: kubeflow-user-example-com
+          title: Service Account Name
+          default: mistral
+
+        minReplicas:
+          type: integer
+          title: Min Replicas
+          default: 1
+
+        scaleMetric:
+          type: string
+          title: Scale Metric
+          default: cpu
+
+        gpuMemoryUtilization:
+          type: string
+          title: GPU Memory Utilization
+          default: "0.65"
+
+        requestCpu:
+          type: string
+          title: CPU Request
+          default: "6"
+
+        requestMemory:
+          type: string
+          title: Memory Request
+          default: 8Gi
+
+        requestGpu:
+          type: string
+          title: GPU Request
+          default: "1"
+
+        limitCpu:
+          type: string
+          title: CPU Limit
+          default: "8"
+
+        limitMemory:
+          type: string
+          title: Memory Limit
+          default: 16Gi
+
+        limitGpu:
+          type: string
+          title: GPU Limit
+          default: "1"
+
+        runtimeClassName:
+          type: string
+          title: Runtime Class Name
+          default: nvidia
 
   steps:
     - id: generate
-      name: Generate KServe manifest
+      name: Generate model manifests
       action: fetch:template
       input:
         url: ./skeleton
         values:
           modelName: ${{ parameters.modelName }}
+          hfModelName: ${{ parameters.hfModelName }}
           modelUri: ${{ parameters.modelUri }}
-          namespace: ${{ parameters.namespace }}
+          serviceAccountName: ${{ parameters.serviceAccountName }}
+          minReplicas: ${{ parameters.minReplicas }}
+          scaleMetric: ${{ parameters.scaleMetric }}
+          gpuMemoryUtilization: ${{ parameters.gpuMemoryUtilization }}
+          requestCpu: ${{ parameters.requestCpu }}
+          requestMemory: ${{ parameters.requestMemory }}
+          requestGpu: ${{ parameters.requestGpu }}
+          limitCpu: ${{ parameters.limitCpu }}
+          limitMemory: ${{ parameters.limitMemory }}
+          limitGpu: ${{ parameters.limitGpu }}
+          runtimeClassName: ${{ parameters.runtimeClassName }}
 
-    - id: pr
-      name: Create Pull Request
-      action: publish:github:pull-request
+    - id: push
+      name: Push directly to main
+      action: github:repo:push
       input:
         repoUrl: github.com?owner=cymile&repo=model-deployments
-        branchName: deploy-${{ parameters.modelName }}
-        title: Deploy model ${{ parameters.modelName }}
-        description: |
-          Deploy model via Backstage
-
-          - Model: ${{ parameters.modelName }}
-          - URI: ${{ parameters.modelUri }}
-          - Namespace: ${{ parameters.namespace }}
-        targetBranchName: main
+        branchName: main
         sourcePath: .
         targetPath: apps/models/dev/${{ parameters.modelName }}
-        commitMessage: Add model ${{ parameters.modelName }} manifest
+        commitMessage: Deploy model ${{ parameters.modelName }} from Backstage
 
   output:
-    links:
-      - title: Pull Request
-        url: ${{ steps.pr.output.remoteUrl }}
+    text:
+      - title: Result
+        content: Model manifests pushed directly to main in model-deployments

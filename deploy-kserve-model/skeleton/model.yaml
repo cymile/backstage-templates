@@ -1,11 +1,34 @@
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
-  name: {{ values.modelName }}
-  namespace: {{ values.namespace }}
+  name: ${{ values.modelName }}
+  annotations:
+    serving.kserve.io/autoscalerClass: hpa
 spec:
   predictor:
+    serviceAccountName: ${{ values.serviceAccountName }}
+    minReplicas: ${{ values.minReplicas }}
+    scaleMetric: ${{ values.scaleMetric }}
     model:
       modelFormat:
-        name: sklearn
-      storageUri: "{{ values.modelUri }}"
+        name: huggingface
+      args:
+        - --model_name=${{ values.hfModelName }}
+        - --backend=huggingface
+        - --task=text_embedding
+        - --dtype=half
+        - --gpu-memory-utilization=${{ values.gpuMemoryUtilization }}
+      env:
+        - name: PYTORCH_CUDA_ALLOC_CONF
+          value: "expandable_segments:True"
+      storageUri: ${{ values.modelUri }}
+      resources:
+        requests:
+          cpu: "${{ values.requestCpu }}"
+          memory: "${{ values.requestMemory }}"
+          nvidia.com/gpu: "${{ values.requestGpu }}"
+        limits:
+          cpu: "${{ values.limitCpu }}"
+          memory: "${{ values.limitMemory }}"
+          nvidia.com/gpu: "${{ values.limitGpu }}"
+    runtimeClassName: ${{ values.runtimeClassName }}
